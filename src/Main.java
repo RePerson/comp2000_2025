@@ -1,5 +1,6 @@
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Point;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -7,7 +8,7 @@ import javax.swing.JPanel;
 public class Main extends JFrame {
     public static void main(String[] args) throws Exception {
         Main window = new Main();
-        window.run();  // KEEP this as in original Task 3
+        window.run();
     }
 
     class Canvas extends JPanel {
@@ -16,18 +17,20 @@ public class Main extends JFrame {
         public Canvas() {
             setPreferredSize(new Dimension(720, 720));
             grid = new Grid(20, 20, 35, 10, 10);
-
-            addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
-                public void mouseMoved(java.awt.event.MouseEvent e) {
-                    grid.updateHover(e.getX(), e.getY());
-                    repaint();
-                }
-            });
         }
 
         @Override
         public void paint(Graphics g) {
             g.setColor(java.awt.Color.BLACK);
+
+            // Get mouse position relative to this panel
+            Point mousePos = getMousePosition();
+            if (mousePos != null) {
+                grid.updateHover(mousePos.x, mousePos.y);
+            } else {
+                grid.clearHover();
+            }
+
             grid.paint(g);
         }
     }
@@ -59,11 +62,10 @@ public class Main extends JFrame {
         public void paint(Graphics g, boolean highlighted) {
             if (highlighted) {
                 g.setColor(java.awt.Color.LIGHT_GRAY);
-                g.fillRect(x, y, size, size);
             } else {
                 g.setColor(java.awt.Color.WHITE);
-                g.fillRect(x, y, size, size);
             }
+            g.fillRect(x, y, size, size);
             g.setColor(java.awt.Color.BLACK);
             g.drawRect(x, y, size, size);
         }
@@ -73,7 +75,6 @@ public class Main extends JFrame {
     public static class Grid {
         public int rows, cols, cellSize, startX, startY;
         public Cell[][] cells;
-
         public int hoverRow = -1;
         public int hoverCol = -1;
 
@@ -85,7 +86,6 @@ public class Main extends JFrame {
             this.startY = startY;
 
             cells = new Cell[rows][cols];
-
             for (int r = 0; r < rows; r++) {
                 for (int c = 0; c < cols; c++) {
                     int x = startX + c * cellSize;
@@ -104,6 +104,11 @@ public class Main extends JFrame {
                 hoverRow = -1;
                 hoverCol = -1;
             }
+        }
+
+        public void clearHover() {
+            hoverRow = -1;
+            hoverCol = -1;
         }
 
         public void paint(Graphics g) {
